@@ -1,244 +1,110 @@
-#include "tmatrix.h"
+#include "priority_queue.h"
 
 #include <gtest.h>
 
-TEST(TDynamicMatrix, can_create_matrix_with_positive_length)
-{
-	ASSERT_NO_THROW(TDynamicMatrix<int> m(5));
+TEST(PriorityQueueTest, PushAndSize) {
+    PriorityQueue<int, std::string> pq;
+    ASSERT_TRUE(pq.isEmpty());
+    ASSERT_EQ(pq.size(), 0);
+
+    pq.push(3, "task C");
+    ASSERT_FALSE(pq.isEmpty());
+    ASSERT_EQ(pq.size(), 1);
+
+    pq.push(10, "task A");
+    ASSERT_EQ(pq.size(), 2);
+
+    pq.push(1, "task D");
+    ASSERT_EQ(pq.size(), 3);
 }
 
-TEST(TDynamicMatrix, cant_create_too_large_matrix)
-{
-	ASSERT_ANY_THROW(TDynamicMatrix<int> m(MAX_MATRIX_SIZE + 1));
+
+TEST(PriorityQueueTest, Pop) {
+    PriorityQueue<int, std::string> pq;
+    pq.push(3, "task C");
+    pq.push(10, "task A");
+    pq.push(1, "task D");
+
+
+    auto top1 = pq.pop();
+    ASSERT_EQ(top1.first, 10);
+    ASSERT_EQ(top1.second, "task A");
+
+    auto top2 = pq.pop();
+    ASSERT_EQ(top2.first, 3);
+    ASSERT_EQ(top2.second, "task C");
+
+
+    auto top3 = pq.pop();
+    ASSERT_EQ(top3.first, 1);
+    ASSERT_EQ(top3.second, "task D");
+    ASSERT_TRUE(pq.isEmpty());
 }
 
-TEST(TDynamicMatrix, throws_when_create_matrix_with_negative_length)
-{
-	ASSERT_ANY_THROW(TDynamicMatrix<int> m(-5));
+TEST(PriorityQueueTest, top) {
+    PriorityQueue<int, std::string> pq;
+    pq.push(3, "task C");
+    pq.push(10, "task A");
+
+    ASSERT_EQ(pq.top().first, 10);
+    ASSERT_EQ(pq.top().second, "task A");
+    ASSERT_EQ(pq.size(), 2);
+
+    pq.pop();
+    ASSERT_EQ(pq.top().first, 3);
+    ASSERT_EQ(pq.top().second, "task C");
 }
 
-TEST(TDynamicMatrix, can_create_copied_matrix)
-{
-	TDynamicMatrix<int> m(5);
 
-	ASSERT_NO_THROW(TDynamicMatrix<int> m1(m));
+
+TEST(PriorityQueueTest, EmptyQueue) {
+    PriorityQueue<int, std::string> pq;
+    ASSERT_TRUE(pq.isEmpty());
+    ASSERT_THROW(pq.pop(), std::out_of_range);
+    ASSERT_THROW(pq.top(), std::out_of_range);
+
 }
 
-TEST(TDynamicMatrix, copied_matrix_is_equal_to_source_one)
-{
-	TDynamicMatrix<int> m(5);
-	TDynamicMatrix<int> m1(m);
-	ASSERT_EQ(m, m1);
+TEST(PriorityQueueTest, Clear) {
+    PriorityQueue<int, std::string> pq;
+    pq.push(3, "task C");
+    pq.push(10, "task A");
+    pq.push(1, "task D");
+    ASSERT_FALSE(pq.isEmpty());
+    pq.clear();
+    ASSERT_TRUE(pq.isEmpty());
+    ASSERT_EQ(pq.size(), 0);
 }
 
-TEST(TDynamicMatrix, copied_matrix_has_its_own_memory)
-{
-	TDynamicMatrix<int> m(5);
-	TDynamicMatrix<int> m1(m);
+TEST(PriorityQueueTest, ComplexScenario) {
+    PriorityQueue<int, std::string> pq;
+    pq.push(3, "task C");
+    pq.push(10, "task A");
+    pq.push(1, "task D");
+    pq.push(7, "task B");
+    pq.push(5, "task E");
 
-	m1[0][0] = 10;
-
-	ASSERT_NE(m[0][0], m1[0][0]);
+    ASSERT_EQ(pq.pop().second, "task A");
+    ASSERT_EQ(pq.pop().second, "task B");
+    ASSERT_EQ(pq.pop().second, "task E");
+    ASSERT_EQ(pq.pop().second, "task C");
+    ASSERT_EQ(pq.pop().second, "task D");
+    ASSERT_TRUE(pq.isEmpty());
 }
 
-TEST(TDynamicMatrix, can_get_size)
-{
-	/*TDynamicVector<TDynamicVector<int>> m(5);
+TEST(PriorityQueueTest, DifferentTypes) {
+    PriorityQueue<double, int> pq;
+    pq.push(3.5, 100);
+    pq.push(10.2, 200);
+    pq.push(1.1, 300);
 
-	ASSERT_EQ(m.size(), 5);*/
-
-	TDynamicMatrix<int> m(5);
-
-	ASSERT_EQ(m.get_size(), 5);
+    ASSERT_EQ(pq.pop().first, 10.2);
+    ASSERT_EQ(pq.pop().first, 3.5);
+    ASSERT_EQ(pq.pop().first, 1.1);
 }
 
-TEST(TDynamicMatrix, can_set_and_get_element)
-{
-	TDynamicMatrix<int> m(5);
-	m[0][1] = 4;
 
-	EXPECT_EQ(4, m[0][1]);
-}
-
-TEST(TDynamicMatrix, throws_when_set_element_with_negative_index)
-{
-	TDynamicMatrix<int> m(4);
-
-	ASSERT_ANY_THROW(m.at(-1, -1));
-}
-
-TEST(TDynamicMatrix, throws_when_set_element_with_too_large_index)
-{
-	TDynamicMatrix<int> m(4);
-
-	ASSERT_ANY_THROW(m.at(999, 999));
-}
-
-TEST(TDynamicMatrix, can_assign_matrix_to_itself)
-{
-	TDynamicMatrix<int> m(3);
-	TDynamicMatrix<int> m1(3);
-	m[2][1] = 4;
-	m1 = m;
-
-	ASSERT_NO_THROW(m = m);
-	m = m;
-
-	ASSERT_EQ(m, m1);
-}
-
-TEST(TDynamicMatrix, can_assign_matrices_of_equal_size)
-{
-	TDynamicMatrix<int> m(5);
-	TDynamicMatrix<int> m1(5);
-	m[2][1] = 4;
-
-	ASSERT_NO_THROW(m = m1);
-	m1 = m;
-
-	ASSERT_EQ(m, m1);
-}
-
-TEST(TDynamicMatrix, assign_operator_change_matrix_size)
-{
-	TDynamicMatrix<int> m(5);
-	TDynamicMatrix<int> m1(2);
-
-	m1 = m;
-
-	EXPECT_EQ(m.get_size(), m1.get_size());
-}
-
-TEST(TDynamicMatrix, can_assign_matrices_of_different_size)
-{
-	TDynamicMatrix<int> m(5);
-	TDynamicMatrix<int> m1(2);
-	m[2][1] = 4;
-
-	ASSERT_NO_THROW(m = m1);
-	m1 = m;
-
-	ASSERT_EQ(m, m1);
-}
-
-TEST(TDynamicMatrix, compare_equal_matrices_return_true)
-{
-	TDynamicVector<int> m(5);
-	TDynamicVector<int> m1(5);
-
-	ASSERT_EQ(m == m1, 1);
-}
-
-TEST(TDynamicMatrix, compare_matrix_with_itself_return_true)
-{
-	TDynamicMatrix<int> m(5);
-
-	ASSERT_EQ(m == m, 1);
-}
-
-TEST(TDynamicMatrix, matrices_with_different_size_are_not_equal)
-{
-	TDynamicMatrix<int> m(5);
-	TDynamicMatrix<int> m1(5);
-
-	EXPECT_EQ(m, m1);
-}
-
-TEST(TDynamicMatrix, can_add_matrices_with_equal_size)
-{
-	TDynamicMatrix<int> m(2);
-	TDynamicMatrix<int> m1(2);
-	TDynamicMatrix<int> m2(2);
-
-	m2[0][0] = 3;
-	m2[1][0] = 3;
-
-	m[0][0] = 1;
-	m[1][0] = 1;
-	m1[0][0] = 2;
-	m1[1][0] = 2;
-
-	ASSERT_NO_THROW(m + m1);
-	m = m + m1;
-
-	EXPECT_EQ(m, m2);
-}
-
-TEST(TDynamicMatrix, cant_add_matrices_with_not_equal_size)
-{
-	TDynamicMatrix<int> m(2);
-	TDynamicMatrix<int> m1(3);
-
-	m[0][0] = 1;
-	m[1][0] = 1;
-	m1[0][0] = 2;
-	m1[1][0] = 2;
-
-	ASSERT_ANY_THROW(m + m1);
-}
-
-TEST(TDynamicMatrix, can_subtract_matrices_with_equal_size)
-{
-	TDynamicMatrix<int> m(2);
-	TDynamicMatrix<int> m1(2);
-	TDynamicMatrix<int> m2(2);
-
-	m[0][0] = 1;
-	m[1][0] = 1;
-	m1[0][0] = 2;
-	m1[1][0] = 2;
-
-	ASSERT_NO_THROW(m - m1);
-	m2 = m1 - m;
-
-	EXPECT_EQ(m, m2);
-}
-
-TEST(TDynamicMatrix, cant_subtract_matrixes_with_not_equal_size)
-{
-	TDynamicMatrix<int> m(2);
-	TDynamicMatrix<int> m1(3);
-
-	m[0][0] = 1;
-	m[1][0] = 1;
-	m1[0][0] = 2;
-	m1[1][0] = 2;
-
-	ASSERT_ANY_THROW(m - m1);
-}
-
-TEST(TDynamicMatrix, can_move_matrix)
-{
-	TDynamicMatrix<int> m(5);
-	TDynamicMatrix<int> m1(5);
-	for (int i = 0; i < 5; ++i)
-		for (int j = 0; j < 5; ++j) {
-			m[i][j] = i * 5 + j;
-			m1[i][j] = i * 5 + j;
-		}
-
-	TDynamicMatrix<int> m2(std::move(m1));
-
-	ASSERT_EQ(m1.get_size(), 0);
-	ASSERT_EQ(m2.get_size(), 5);
-
-	ASSERT_EQ(m, m2);
-}
-
-TEST(TDynamicMatrix, can_move_assign_matrix)
-{
-	TDynamicMatrix<int> m(5);
-	TDynamicMatrix<int> m1(5);
-	for (int i = 0; i < 5; ++i)
-		for (int j = 0; j < 5; ++j) {
-			m[i][j] = i * 5 + j;
-			m1[i][j] = i * 5 + j;
-		}
-	TDynamicMatrix<int> m2(2);
-	m2 = std::move(m1);
-	
-	ASSERT_EQ(m1.get_size(), 0);
-	ASSERT_EQ(m2.get_size(), 5);
-
-	ASSERT_EQ(m, m2);
+TEST(QueueTest, PushAndPop) {
+    run();
+    ADD_FAILURE();
 }
